@@ -12,7 +12,16 @@ import './KnobSection.scss'
  * @param {number} reverb - Current reverb value (0-100)
  * @param {function} onReverbChange - Callback for reverb changes
  */
-export default function KnobSection({ volume, onVolumeChange, frequency, onFrequencyChange, tempo, onTempoChange, reverb, onReverbChange }) {
+export default function KnobSection({
+  volume,
+  onVolumeChange,
+  frequency,
+  onFrequencyChange,
+  tempo,
+  onTempoChange,
+  reverb,
+  onReverbChange,
+}) {
   return (
     <div className="knob-section">
       <Knob
@@ -46,4 +55,3 @@ export default function KnobSection({ volume, onVolumeChange, frequency, onFrequ
     </div>
   )
 }
-

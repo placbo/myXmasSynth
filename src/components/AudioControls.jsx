@@ -9,13 +9,23 @@ import './AudioControls.scss'
 export default function AudioControls({ isPlaying, onPlay, onStop }) {
   return (
     <div className="card">
-      <button type="button" onClick={onPlay} disabled={isPlaying} aria-label="Play Sound">
+      <button
+        type="button"
+        onClick={onPlay}
+        disabled={isPlaying}
+        aria-label="Play Sound"
+      >
         ▶
       </button>
-      <button type="button" onClick={onStop} disabled={!isPlaying} style={{ marginLeft: '1em' }} aria-label="Stop Sound">
+      <button
+        type="button"
+        onClick={onStop}
+        disabled={!isPlaying}
+        style={{ marginLeft: '1em' }}
+        aria-label="Stop Sound"
+      >
         ■
       </button>
     </div>
   )
 }
-

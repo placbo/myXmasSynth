@@ -59,7 +59,7 @@ const SnowEffect = () => {
           ctx.fillStyle = `rgba(255, 255, 255, ${snowflake.opacity})`
           ctx.fill()
           ctx.closePath()
-        }
+        },
       }
 
       return snowflake
@@ -99,5 +99,3 @@ const SnowEffect = () => {
 }
 
 export default SnowEffect
-
-

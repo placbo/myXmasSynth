@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
-import { christmasMelody, BASE_FREQUENCY } from '../constants/melodies'
+import { useEffect, useRef, useState } from 'react'
+import { BASE_FREQUENCY, christmasMelody } from '../constants/melodies'
 
 /**
  * Custom hook for managing audio playback with melody and frequency control
@@ -44,8 +44,8 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
 
     for (let i = 0; i < length; i++) {
       const n = length - i
-      impulseL[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay)
-      impulseR[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay)
+      impulseL[i] = (Math.random() * 2 - 1) * (n / length) ** decay
+      impulseR[i] = (Math.random() * 2 - 1) * (n / length) ** decay
     }
     return impulse
   }
@@ -72,7 +72,12 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
     // Calculate duration based on tempo (120 BPM as reference tempo)
     const tempoMultiplier = 120 / tempoRef.current
     const adjustedDuration = note.duration * tempoMultiplier
-    console.log('Playing note with tempo:', tempoRef.current, 'duration:', adjustedDuration)
+    console.log(
+      'Playing note with tempo:',
+      tempoRef.current,
+      'duration:',
+      adjustedDuration,
+    )
 
     // Smooth envelope for each note
     const now = audioContext.currentTime
@@ -87,13 +92,13 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
     // Store oscillator reference for frequency updates
     activeOscillatorsRef.current.push({
       oscillator,
-      baseFreq: note.freq
+      baseFreq: note.freq,
     })
 
     // Clean up when note ends
     oscillator.onended = () => {
       activeOscillatorsRef.current = activeOscillatorsRef.current.filter(
-        item => item.oscillator !== oscillator
+        item => item.oscillator !== oscillator,
       )
     }
 
@@ -188,7 +193,11 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
     const audioContext = audioContextRef.current
     if (gainNode && audioContext && isPlaying) {
       // Smoothly transition to new volume (0-100 to 0-1)
-      gainNode.gain.setTargetAtTime(volume / 100, audioContext.currentTime, 0.01)
+      gainNode.gain.setTargetAtTime(
+        volume / 100,
+        audioContext.currentTime,
+        0.01,
+      )
     }
   }, [volume, isPlaying])
 
@@ -255,7 +264,12 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
     const audioContext = audioContextRef.current
     const gainNode = gainNodeRef.current
 
-    console.log('Tempo effect triggered:', debouncedTempo, 'isPlaying:', isPlaying)
+    console.log(
+      'Tempo effect triggered:',
+      debouncedTempo,
+      'isPlaying:',
+      isPlaying,
+    )
 
     if (audioContext && gainNode) {
       console.log('Restarting with new tempo:', debouncedTempo)
@@ -275,7 +289,6 @@ export function useAudioPlayer(volume, frequency, tempo, reverb) {
   return {
     isPlaying,
     play,
-    stop
+    stop,
   }
 }
-

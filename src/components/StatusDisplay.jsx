@@ -22,10 +22,7 @@ export default function StatusDisplay({ volume, frequency, tempo, reverb }) {
       <p className="status-text">
         🎚️ Reverb: <strong>{reverb}%</strong>
       </p>
-      <p className="decoration">
-        🌟 ⛄ 🌟 ☃️ 🌟 ☃️ 🌟
-      </p>
+      <p className="decoration">🌟 ⛄ 🌟 ☃️ 🌟 ☃️ 🌟</p>
     </div>
   )
 }
-

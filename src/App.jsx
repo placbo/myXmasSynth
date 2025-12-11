@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 import './App.scss'
-import { useAudioPlayer } from './hooks/useAudioPlayer'
 import AudioControls from './components/AudioControls'
 import KnobSection from './components/KnobSection'
+import SnowEffect from './components/SnowEffect.jsx'
 import StatusDisplay from './components/StatusDisplay'
-import SnowEffect from "./components/SnowEffect.jsx";
+import { useAudioPlayer } from './hooks/useAudioPlayer'
 
 function App() {
   const [volume, setVolume] = useState(50)
@@ -13,18 +13,18 @@ function App() {
   const [tempo, setTempo] = useState(120) // 120 BPM default
   const [reverb, setReverb] = useState(0) // 0-100 reverb amount
 
-  const { isPlaying, play, stop } = useAudioPlayer(volume, frequency, tempo, reverb)
-
+  const { isPlaying, play, stop } = useAudioPlayer(
+    volume,
+    frequency,
+    tempo,
+    reverb,
+  )
 
   return (
     <>
       <SnowEffect />
       <h1>MyXmasSynth</h1>
-      <AudioControls
-        isPlaying={isPlaying}
-        onPlay={play}
-        onStop={stop}
-      />
+      <AudioControls isPlaying={isPlaying} onPlay={play} onStop={stop} />
       <KnobSection
         volume={volume}
         onVolumeChange={setVolume}
