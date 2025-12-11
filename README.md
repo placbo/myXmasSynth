@@ -1,16 +1,56 @@
-# React + Vite
+# MyXmasSynth 🎄🎹
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A festive web-based synthesizer that plays Christmas melodies with customizable audio controls and a snowy visual effect.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Play/Stop Controls**: Start and stop the Christmas melody playback
+- **Volume Control**: Adjust the overall volume level (0-100)
+- **Frequency Knob**: Change the pitch of the melody (440Hz default)
+- **Tempo Control**: Adjust playback speed (120 BPM default)
+- **Reverb Effect**: Add spatial depth with reverb (0-100)
+- **Snow Effect**: Festive falling snow animation
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React 19** - UI framework
+- **Vite** - Build tool and dev server
+- **Sass** - CSS preprocessing
+- **Web Audio API** - Audio synthesis and effects
+- **Biome** - Linting and formatting
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Install Dependencies
+```bash
+npm install
+```
+
+### Run Development Server
+```bash
+npm run dev
+```
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Lint Code
+```bash
+npm run lint
+```
+
+### Format Code
+```bash
+npm run format
+```
+
+## How It Works
+
+The app uses the Web Audio API to synthesize audio in real-time, playing a predefined Christmas melody with adjustable parameters. Turn the knobs to modify volume, pitch, tempo, and reverb to create your own festive sound!
+
+---
+
+Made with ❄️ for the holidays
+
