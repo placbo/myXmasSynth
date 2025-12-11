@@ -11,6 +11,9 @@ function App() {
   const oscillatorRef = useRef(null)
   const gainNodeRef = useRef(null)
   const timeoutRefs = useRef([])
+  const shouldLoopRef = useRef(false)
+  const activeOscillatorsRef = useRef([])
+  const melodyIndexRef = useRef(0)
 
   // Simple Christmas melody: Jingle Bells (first few notes)
   // Note frequencies and durations
@@ -22,10 +25,10 @@ function App() {
     { freq: 329.63, duration: 0.25 }, // E4
     { freq: 329.63, duration: 0.5 },  // E4
     { freq: 329.63, duration: 0.25 }, // E4
-    { freq: 392.00, duration: 0.25 }, // G4
+    { freq: 392, duration: 0.25 }, // G4
     { freq: 261.63, duration: 0.25 }, // C4
     { freq: 293.66, duration: 0.25 }, // D4
-    { freq: 329.63, duration: 1.0 },  // E4
+    { freq: 329.63, duration: 1 },  // E4
   ]
 
   const playSound = () => {
@@ -39,36 +42,77 @@ function App() {
     audioContextRef.current = audioContext
     gainNodeRef.current = gainNode
     setIsPlaying(true)
+    shouldLoopRef.current = true
+    melodyIndexRef.current = 0
 
-    // Play the melody
-    let currentTime = audioContext.currentTime
-    christmasMelody.forEach((note) => {
+    // Function to play one note with real-time frequency control
+    const playNote = (noteIndex) => {
+      if (!shouldLoopRef.current || !audioContextRef.current) return
+
+      const note = christmasMelody[noteIndex]
       const oscillator = audioContext.createOscillator()
-      oscillator.connect(gainNode)
-      oscillator.frequency.value = note.freq
+      const noteGain = audioContext.createGain()
+
+      // Connect: oscillator -> noteGain -> main gainNode -> destination
+      oscillator.connect(noteGain)
+      noteGain.connect(gainNode)
+
+      // Calculate frequency with pitch adjustment (frequency knob acts as multiplier)
+      const pitchMultiplier = frequency / 440 // 440 is the base reference
+      oscillator.frequency.value = note.freq * pitchMultiplier
       oscillator.type = 'sine'
 
-      oscillator.start(currentTime)
-      oscillator.stop(currentTime + note.duration)
+      // Smooth envelope for each note
+      const now = audioContext.currentTime
+      noteGain.gain.setValueAtTime(0, now)
+      noteGain.gain.linearRampToValueAtTime(1, now + 0.01)
+      noteGain.gain.linearRampToValueAtTime(1, now + note.duration - 0.05)
+      noteGain.gain.linearRampToValueAtTime(0, now + note.duration)
 
-      currentTime += note.duration
-    })
+      oscillator.start(now)
+      oscillator.stop(now + note.duration)
 
-    // Auto-stop after melody finishes
-    const totalDuration = christmasMelody.reduce((sum, note) => sum + note.duration, 0)
-    const stopTimeout = setTimeout(() => {
-      stopSound()
-    }, totalDuration * 1000)
+      // Store oscillator reference for frequency updates
+      activeOscillatorsRef.current.push({
+        oscillator,
+        baseFreq: note.freq
+      })
 
-    timeoutRefs.current.push(stopTimeout)
+      // Clean up when note ends
+      oscillator.onended = () => {
+        activeOscillatorsRef.current = activeOscillatorsRef.current.filter(
+          item => item.oscillator !== oscillator
+        )
+      }
+
+      // Schedule next note
+      const nextIndex = (noteIndex + 1) % christmasMelody.length
+      melodyIndexRef.current = nextIndex
+
+      const nextTimeout = setTimeout(() => {
+        playNote(nextIndex)
+      }, note.duration * 1000)
+
+      timeoutRefs.current.push(nextTimeout)
+    }
+
+    // Start the first note
+    playNote(0)
   }
 
   const stopSound = () => {
     if (!isPlaying) return
 
+    shouldLoopRef.current = false
+
     // Clear any pending timeouts
-    timeoutRefs.current.forEach(timeout => clearTimeout(timeout))
+    timeoutRefs.current.forEach(timeout => {
+      clearTimeout(timeout)
+    })
     timeoutRefs.current = []
+
+    // Clear active oscillators
+    activeOscillatorsRef.current = []
 
     const audioContext = audioContextRef.current
     if (audioContext) {
@@ -90,10 +134,26 @@ function App() {
     }
   }, [knobValue, isPlaying])
 
+  // Update frequency of active oscillators when frequency knob changes
+  useEffect(() => {
+    const audioContext = audioContextRef.current
+    if (audioContext && isPlaying && activeOscillatorsRef.current.length > 0) {
+      const pitchMultiplier = frequency / 440 // 440 is the base reference
+      const now = audioContext.currentTime
+
+      // Update all active oscillators with the new frequency
+      activeOscillatorsRef.current.forEach(({ oscillator, baseFreq }) => {
+        const newFreq = baseFreq * pitchMultiplier
+        // Use exponentialRampToValueAtTime for smooth pitch changes
+        oscillator.frequency.setTargetAtTime(newFreq, now, 0.015)
+      })
+    }
+  }, [frequency, isPlaying])
+
 
   return (
     <>
-      <h1>MySynth</h1>
+      <h1>MyXmasSynth</h1>
       <div className="card">
         <button type="button" onClick={playSound} disabled={isPlaying}>
           Play Sound
@@ -126,7 +186,7 @@ function App() {
           🎵 Frequency: <strong>{frequency} Hz</strong>
         </p>
         <p style={{ fontSize: '2rem', marginTop: '1.5rem' }}>
-          🎅 ⛄ 🎁 ☃️ 🌟
+          🌟 ⛄ 🌟 ☃️ 🌟 ☃️ 🌟
         </p>
       </div>
     </>
