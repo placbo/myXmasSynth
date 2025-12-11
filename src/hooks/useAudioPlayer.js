@@ -19,6 +19,8 @@ export function useAudioPlayer(volume, frequency, tempo) {
   const frequencyRef = useRef(frequency)
   const tempoRef = useRef(tempo)
   const isInitialTempoRef = useRef(true)
+  const tempoDebounceRef = useRef(null)
+  const [debouncedTempo, setDebouncedTempo] = useState(tempo)
 
   // Keep refs in sync with props
   frequencyRef.current = frequency
@@ -140,6 +142,25 @@ export function useAudioPlayer(volume, frequency, tempo) {
     }
   }, [volume, isPlaying])
 
+  // Debounce tempo changes to prevent jitter
+  useEffect(() => {
+    // Clear any pending debounce
+    if (tempoDebounceRef.current) {
+      clearTimeout(tempoDebounceRef.current)
+    }
+
+    // Set new debounced value after 150ms
+    tempoDebounceRef.current = setTimeout(() => {
+      setDebouncedTempo(tempo)
+    }, 150)
+
+    return () => {
+      if (tempoDebounceRef.current) {
+        clearTimeout(tempoDebounceRef.current)
+      }
+    }
+  }, [tempo])
+
   // Update frequency of active oscillators when frequency changes
   useEffect(() => {
     const audioContext = audioContextRef.current
@@ -170,10 +191,10 @@ export function useAudioPlayer(volume, frequency, tempo) {
     const audioContext = audioContextRef.current
     const gainNode = gainNodeRef.current
 
-    console.log('Tempo effect triggered:', tempo, 'isPlaying:', isPlaying)
+    console.log('Tempo effect triggered:', debouncedTempo, 'isPlaying:', isPlaying)
 
     if (audioContext && gainNode) {
-      console.log('Restarting with new tempo:', tempo)
+      console.log('Restarting with new tempo:', debouncedTempo)
       // Clear pending timeouts to stop scheduled notes
       timeoutRefs.current.forEach(timeout => {
         clearTimeout(timeout)
@@ -185,7 +206,7 @@ export function useAudioPlayer(volume, frequency, tempo) {
       playNote(currentIndex, audioContext, gainNode)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tempo])
+  }, [debouncedTempo])
 
   return {
     isPlaying,
