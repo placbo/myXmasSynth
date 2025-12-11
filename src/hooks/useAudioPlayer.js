@@ -5,9 +5,10 @@ import { christmasMelody, BASE_FREQUENCY } from '../constants/melodies'
  * Custom hook for managing audio playback with melody and frequency control
  * @param {number} volume - Volume level (0-100)
  * @param {number} frequency - Frequency for pitch adjustment
+ * @param {number} tempo - Tempo in BPM (beats per minute)
  * @returns {object} Audio player state and controls
  */
-export function useAudioPlayer(volume, frequency) {
+export function useAudioPlayer(volume, frequency, tempo) {
   const [isPlaying, setIsPlaying] = useState(false)
   const audioContextRef = useRef(null)
   const gainNodeRef = useRef(null)
@@ -15,6 +16,13 @@ export function useAudioPlayer(volume, frequency) {
   const shouldLoopRef = useRef(false)
   const activeOscillatorsRef = useRef([])
   const melodyIndexRef = useRef(0)
+  const frequencyRef = useRef(frequency)
+  const tempoRef = useRef(tempo)
+  const isInitialTempoRef = useRef(true)
+
+  // Keep refs in sync with props
+  frequencyRef.current = frequency
+  tempoRef.current = tempo
 
   /**
    * Play a single note with envelope and pitch adjustment
@@ -31,19 +39,24 @@ export function useAudioPlayer(volume, frequency) {
     noteGain.connect(gainNode)
 
     // Calculate frequency with pitch adjustment
-    const pitchMultiplier = frequency / BASE_FREQUENCY
+    const pitchMultiplier = frequencyRef.current / BASE_FREQUENCY
     oscillator.frequency.value = note.freq * pitchMultiplier
     oscillator.type = 'sine'
+
+    // Calculate duration based on tempo (120 BPM as reference tempo)
+    const tempoMultiplier = 120 / tempoRef.current
+    const adjustedDuration = note.duration * tempoMultiplier
+    console.log('Playing note with tempo:', tempoRef.current, 'duration:', adjustedDuration)
 
     // Smooth envelope for each note
     const now = audioContext.currentTime
     noteGain.gain.setValueAtTime(0, now)
     noteGain.gain.linearRampToValueAtTime(1, now + 0.01)
-    noteGain.gain.linearRampToValueAtTime(1, now + note.duration - 0.05)
-    noteGain.gain.linearRampToValueAtTime(0, now + note.duration)
+    noteGain.gain.linearRampToValueAtTime(1, now + adjustedDuration - 0.05)
+    noteGain.gain.linearRampToValueAtTime(0, now + adjustedDuration)
 
     oscillator.start(now)
-    oscillator.stop(now + note.duration)
+    oscillator.stop(now + adjustedDuration)
 
     // Store oscillator reference for frequency updates
     activeOscillatorsRef.current.push({
@@ -64,7 +77,7 @@ export function useAudioPlayer(volume, frequency) {
 
     const nextTimeout = setTimeout(() => {
       playNote(nextIndex, audioContext, gainNode)
-    }, note.duration * 1000)
+    }, adjustedDuration * 1000)
 
     timeoutRefs.current.push(nextTimeout)
   }
@@ -142,6 +155,37 @@ export function useAudioPlayer(volume, frequency) {
       })
     }
   }, [frequency, isPlaying])
+
+  // Handle tempo changes during playback
+  useEffect(() => {
+    // Skip the initial render
+    if (isInitialTempoRef.current) {
+      isInitialTempoRef.current = false
+      return
+    }
+
+    // Only run if currently playing
+    if (!isPlaying) return
+
+    const audioContext = audioContextRef.current
+    const gainNode = gainNodeRef.current
+
+    console.log('Tempo effect triggered:', tempo, 'isPlaying:', isPlaying)
+
+    if (audioContext && gainNode) {
+      console.log('Restarting with new tempo:', tempo)
+      // Clear pending timeouts to stop scheduled notes
+      timeoutRefs.current.forEach(timeout => {
+        clearTimeout(timeout)
+      })
+      timeoutRefs.current = []
+
+      // Continue from current melody position with new tempo
+      const currentIndex = melodyIndexRef.current
+      playNote(currentIndex, audioContext, gainNode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempo])
 
   return {
     isPlaying,

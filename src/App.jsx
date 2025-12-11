@@ -9,8 +9,9 @@ import StatusDisplay from './components/StatusDisplay'
 function App() {
   const [volume, setVolume] = useState(50)
   const [frequency, setFrequency] = useState(440) // A4 note
+  const [tempo, setTempo] = useState(120) // 120 BPM default
 
-  const { isPlaying, play, stop } = useAudioPlayer(volume, frequency)
+  const { isPlaying, play, stop } = useAudioPlayer(volume, frequency, tempo)
 
 
   return (
@@ -26,10 +27,13 @@ function App() {
         onVolumeChange={setVolume}
         frequency={frequency}
         onFrequencyChange={setFrequency}
+        tempo={tempo}
+        onTempoChange={setTempo}
       />
       <StatusDisplay
         volume={volume}
         frequency={frequency}
+        tempo={tempo}
       />
     </>
   )
