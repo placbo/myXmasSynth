@@ -9,8 +9,10 @@ import './KnobSection.scss'
  * @param {function} onFrequencyChange - Callback for frequency changes
  * @param {number} tempo - Current tempo value (BPM)
  * @param {function} onTempoChange - Callback for tempo changes
+ * @param {number} reverb - Current reverb value (0-100)
+ * @param {function} onReverbChange - Callback for reverb changes
  */
-export default function KnobSection({ volume, onVolumeChange, frequency, onFrequencyChange, tempo, onTempoChange }) {
+export default function KnobSection({ volume, onVolumeChange, frequency, onFrequencyChange, tempo, onTempoChange, reverb, onReverbChange }) {
   return (
     <div className="knob-section">
       <Knob
@@ -33,6 +35,13 @@ export default function KnobSection({ volume, onVolumeChange, frequency, onFrequ
         min={60}
         max={180}
         label="Tempo (BPM)"
+      />
+      <Knob
+        value={reverb}
+        onChange={onReverbChange}
+        min={0}
+        max={100}
+        label="Reverb"
       />
     </div>
   )

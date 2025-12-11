@@ -5,8 +5,9 @@ import './StatusDisplay.scss'
  * @param {number} volume - Current volume value
  * @param {number} frequency - Current frequency value
  * @param {number} tempo - Current tempo value (BPM)
+ * @param {number} reverb - Current reverb value (0-100)
  */
-export default function StatusDisplay({ volume, frequency, tempo }) {
+export default function StatusDisplay({ volume, frequency, tempo, reverb }) {
   return (
     <div className="status-display">
       <p className="status-text">
@@ -17,6 +18,9 @@ export default function StatusDisplay({ volume, frequency, tempo }) {
       </p>
       <p className="status-text">
         🎹 Tempo: <strong>{tempo} BPM</strong>
+      </p>
+      <p className="status-text">
+        🎚️ Reverb: <strong>{reverb}%</strong>
       </p>
       <p className="decoration">
         🌟 ⛄ 🌟 ☃️ 🌟 ☃️ 🌟

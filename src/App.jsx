@@ -11,8 +11,9 @@ function App() {
   const [volume, setVolume] = useState(50)
   const [frequency, setFrequency] = useState(440) // A4 note
   const [tempo, setTempo] = useState(120) // 120 BPM default
+  const [reverb, setReverb] = useState(0) // 0-100 reverb amount
 
-  const { isPlaying, play, stop } = useAudioPlayer(volume, frequency, tempo)
+  const { isPlaying, play, stop } = useAudioPlayer(volume, frequency, tempo, reverb)
 
 
   return (
@@ -31,11 +32,14 @@ function App() {
         onFrequencyChange={setFrequency}
         tempo={tempo}
         onTempoChange={setTempo}
+        reverb={reverb}
+        onReverbChange={setReverb}
       />
       <StatusDisplay
         volume={volume}
         frequency={frequency}
         tempo={tempo}
+        reverb={reverb}
       />
     </>
   )

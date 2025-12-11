@@ -6,18 +6,23 @@ import { christmasMelody, BASE_FREQUENCY } from '../constants/melodies'
  * @param {number} volume - Volume level (0-100)
  * @param {number} frequency - Frequency for pitch adjustment
  * @param {number} tempo - Tempo in BPM (beats per minute)
+ * @param {number} reverb - Reverb amount (0-100)
  * @returns {object} Audio player state and controls
  */
-export function useAudioPlayer(volume, frequency, tempo) {
+export function useAudioPlayer(volume, frequency, tempo, reverb) {
   const [isPlaying, setIsPlaying] = useState(false)
   const audioContextRef = useRef(null)
   const gainNodeRef = useRef(null)
+  const convolverNodeRef = useRef(null)
+  const dryGainNodeRef = useRef(null)
+  const wetGainNodeRef = useRef(null)
   const timeoutRefs = useRef([])
   const shouldLoopRef = useRef(false)
   const activeOscillatorsRef = useRef([])
   const melodyIndexRef = useRef(0)
   const frequencyRef = useRef(frequency)
   const tempoRef = useRef(tempo)
+  const reverbRef = useRef(reverb)
   const isInitialTempoRef = useRef(true)
   const tempoDebounceRef = useRef(null)
   const [debouncedTempo, setDebouncedTempo] = useState(tempo)
@@ -25,6 +30,25 @@ export function useAudioPlayer(volume, frequency, tempo) {
   // Keep refs in sync with props
   frequencyRef.current = frequency
   tempoRef.current = tempo
+  reverbRef.current = reverb
+
+  /**
+   * Create an impulse response for the convolver (reverb effect)
+   */
+  const createReverbImpulse = (audioContext, duration = 2, decay = 2) => {
+    const sampleRate = audioContext.sampleRate
+    const length = sampleRate * duration
+    const impulse = audioContext.createBuffer(2, length, sampleRate)
+    const impulseL = impulse.getChannelData(0)
+    const impulseR = impulse.getChannelData(1)
+
+    for (let i = 0; i < length; i++) {
+      const n = length - i
+      impulseL[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay)
+      impulseR[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay)
+    }
+    return impulse
+  }
 
   /**
    * Play a single note with envelope and pitch adjustment
@@ -91,13 +115,39 @@ export function useAudioPlayer(volume, frequency, tempo) {
     if (isPlaying) return // Prevent multiple play
 
     const audioContext = new globalThis.AudioContext()
-    const gainNode = audioContext.createGain()
 
-    gainNode.connect(audioContext.destination)
+    // Create the main gain node
+    const gainNode = audioContext.createGain()
     gainNode.gain.setValueAtTime(volume / 100, audioContext.currentTime)
+
+    // Create reverb nodes (dry/wet mix)
+    const dryGain = audioContext.createGain()
+    const wetGain = audioContext.createGain()
+    const convolver = audioContext.createConvolver()
+
+    // Create impulse response for reverb
+    convolver.buffer = createReverbImpulse(audioContext)
+
+    // Set initial dry/wet mix based on reverb amount (0-100)
+    const wetAmount = reverbRef.current / 100
+    const dryAmount = 1 - wetAmount * 0.5 // Keep some dry signal even at max reverb
+    dryGain.gain.setValueAtTime(dryAmount, audioContext.currentTime)
+    wetGain.gain.setValueAtTime(wetAmount, audioContext.currentTime)
+
+    // Connect the routing:
+    // gainNode -> dryGain -> destination (direct signal)
+    // gainNode -> convolver -> wetGain -> destination (reverb signal)
+    gainNode.connect(dryGain)
+    gainNode.connect(convolver)
+    convolver.connect(wetGain)
+    dryGain.connect(audioContext.destination)
+    wetGain.connect(audioContext.destination)
 
     audioContextRef.current = audioContext
     gainNodeRef.current = gainNode
+    convolverNodeRef.current = convolver
+    dryGainNodeRef.current = dryGain
+    wetGainNodeRef.current = wetGain
     setIsPlaying(true)
     shouldLoopRef.current = true
     melodyIndexRef.current = 0
@@ -141,6 +191,20 @@ export function useAudioPlayer(volume, frequency, tempo) {
       gainNode.gain.setTargetAtTime(volume / 100, audioContext.currentTime, 0.01)
     }
   }, [volume, isPlaying])
+
+  // Update reverb when reverb changes
+  useEffect(() => {
+    const audioContext = audioContextRef.current
+    const dryGain = dryGainNodeRef.current
+    const wetGain = wetGainNodeRef.current
+    if (audioContext && dryGain && wetGain && isPlaying) {
+      const wetAmount = reverb / 100
+      const dryAmount = 1 - wetAmount * 0.5 // Keep some dry signal even at max reverb
+      // Smoothly transition to new reverb mix
+      dryGain.gain.setTargetAtTime(dryAmount, audioContext.currentTime, 0.01)
+      wetGain.gain.setTargetAtTime(wetAmount, audioContext.currentTime, 0.01)
+    }
+  }, [reverb, isPlaying])
 
   // Debounce tempo changes to prevent jitter
   useEffect(() => {
