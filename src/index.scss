@@ -13,45 +13,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Christmas snow animation */
-@keyframes snowfall {
-  0% {
-    transform: translateY(-10px) translateX(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) translateX(50px);
-    opacity: 0.8;
-  }
-}
-
-body::before {
-  content: '❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆';
-  position: fixed;
-  top: -10px;
-  left: 0;
-  right: 0;
-  font-size: 2rem;
-  color: rgba(255, 255, 255, 0.6);
-  animation: snowfall 10s linear infinite;
-  pointer-events: none;
-  z-index: 100;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-}
-
-body::after {
-  content: '❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆ ❄ ❅ ❆ ❄';
-  position: fixed;
-  top: -10px;
-  left: 0;
-  right: 0;
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.5);
-  animation: snowfall 15s linear infinite 3s;
-  pointer-events: none;
-  z-index: 100;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-}
 
 a {
   font-weight: 500;
