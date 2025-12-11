@@ -5,6 +5,7 @@ import { useAudioPlayer } from './hooks/useAudioPlayer'
 import AudioControls from './components/AudioControls'
 import KnobSection from './components/KnobSection'
 import StatusDisplay from './components/StatusDisplay'
+import SnowEffect from "./components/SnowEffect.jsx";
 
 function App() {
   const [volume, setVolume] = useState(50)
@@ -16,6 +17,7 @@ function App() {
 
   return (
     <>
+      <SnowEffect />
       <h1>MyXmasSynth</h1>
       <AudioControls
         isPlaying={isPlaying}
